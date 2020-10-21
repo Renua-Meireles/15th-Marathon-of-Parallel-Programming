@@ -4,7 +4,7 @@ CPPFLAGS  = -std=c11 -m64 -Ofast -Wall
 DEFS      =
 INCLUDES  =
 LIBDIR    =
-LIBS     =  -lm
+LIBS     =  -lm -fopenmp
 LINK     =  $(LIBDIR) $(LIBS)
 
 CPU_COMPILE = $(CPUCC) $(DEFS) $(INCLUDES) $(CPPFLAGS)

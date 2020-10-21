@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
-#include <math.h>
+#include <omp.h>
 
 void matrixSolverJacobi(float * __restrict__ A,
                         float * __restrict__ b,
@@ -18,10 +18,11 @@ void matrixSolverJacobi(float * __restrict__ A,
         steps++;
         register float maxErr = 0.0f,
                         err = 0.0f;
+        #pragma omp parallel
         for (unsigned int i = 0; i < m; i++){
           register float aux = 0.0f;
           register float acc = b[i];
-
+          #pragma omp for
           for (unsigned int j = 0; j < n; j++){
 
             if (i == j){
@@ -34,13 +35,14 @@ void matrixSolverJacobi(float * __restrict__ A,
           x1[i] = aux * acc;
         }
 
-
-       for (unsigned int j = 0; j < n; j++){
-         err = fabs(x1[j] - x0[j]) / fabs(x1[j]);
-         if(maxErr < err){
-           maxErr = err;
-         }
-       }
+        #pragma omp parallel firstprivate(maxErr)
+        for (unsigned int j = 0; j < n; j++){
+          err = fabs(x1[j] - x0[j]) / fabs(x1[j]);
+          #pragma omp critical
+          if(maxErr < err){
+            maxErr = err;
+          }
+        }
 /*
       if ((steps % 100) == 0){
         cout << "Error: " << maxErr << endl;
@@ -62,8 +64,10 @@ void matrixSolverJacobi(float * __restrict__ A,
 
 int check(float *a, float *b, const unsigned int size, const float err){
     float maxErr = fabs(a[0] - b[0]);
+    #pragma omp parallel firstprivate(maxErr)
     for (unsigned int i = 1; i < size; i++){
       float lErr = fabs(a[i] - b[i]);
+      #pragma omp critical
       if (maxErr < lErr)
         maxErr = lErr;
     }
