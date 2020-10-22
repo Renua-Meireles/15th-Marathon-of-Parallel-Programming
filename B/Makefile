@@ -6,7 +6,7 @@ CFLAGS = -DCOMPUTE_MD5_PROBLEM -g -Wall -Wshadow -Wcast-align \
 	-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
 	-Wmissing-noreturn  \
 	-Wpointer-arith -Wwrite-strings -finline-functions -O3 \
-	-lrt -std=c99
+	-lrt -std=c99 -fopenmp
 
 LIBS= -lm -lcrypto -lssl
 

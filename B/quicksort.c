@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <openssl/md5.h>
-
-
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
 /*
  * Prototypes
  */
@@ -54,6 +55,7 @@ double randnum(void)
  */
 int main(int argc, char *argv[])
 {
+    double init = omp_get_wtime();
     int N = 0;
     int *our_list = NULL;
 
@@ -76,8 +78,9 @@ int main(int argc, char *argv[])
 
     if (is_sorted(our_list, N) == 1) {
 	printf("Error, for some reason list is still unsorted.\n");
+    printf("%lf\n", omp_get_wtime() - init);
 	return 1;
-    }
+}
 
 #ifdef COMPUTE_MD5_PROBLEM
     //Compute MD5 Checksum for problem identification
@@ -111,10 +114,14 @@ void quicksort(int *toorder, int N)
  */
 void _quicksort(int *toorder, int lo, int hi)
 {
-    if (lo >= hi)
-	return;
+    if (lo >= hi){
+        return;
+    }
+	
     int b = partition(toorder, lo, hi);
+    #pragma omp task
     _quicksort(toorder, lo, b - 1);
+    #pragma omp task
     _quicksort(toorder, b + 1, hi);
 }
 
@@ -152,12 +159,14 @@ int partition(int *toorder, int lo, int hi)
  */
 int is_sorted(int *toorder, int N)
 {
+    int count = 0;
+    #pragma omp parallel for reduction(+:count)
     for (int i = 1; i < N; i++) {
-	if (toorder[i] < toorder[i - 1]) {
-	    return 1;
-	}
+        if (toorder[i] < toorder[i - 1]) {
+            count += 1;
+        }
     }
-    return 0;
+    return (count);
 }
 
 
@@ -179,8 +188,9 @@ int *generate_case(int N)
 	return NULL;
     }
     // Get pseudo-random positive integer values
+    #pragma omp parallel for
     for (i = 0; i < N; i++) {
-	ret[i] = drand(0, INT_MAX);
+	    ret[i] = drand(0, INT_MAX);
     }
     return ret;
 }
