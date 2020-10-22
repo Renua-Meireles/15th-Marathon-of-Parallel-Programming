@@ -1,10 +1,10 @@
 EXEFILE      = jacobi-solver
 CPUCC     = $(CC)
-CPPFLAGS  = -std=c11 -m64 -Ofast -Wall
+CPPFLAGS  = -std=c11 -m64 -Ofast -Wall -fopenmp
 DEFS      =
-INCLUDES  =
+INCLUDES  = 
 LIBDIR    =
-LIBS     =  -lm -fopenmp
+LIBS     =  -lm
 LINK     =  $(LIBDIR) $(LIBS)
 
 CPU_COMPILE = $(CPUCC) $(DEFS) $(INCLUDES) $(CPPFLAGS)
