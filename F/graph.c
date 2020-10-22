@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<omp.h>
 
 /* Maximum size (in char) for neighbors and compute lists */
 #define MAX 100
@@ -38,7 +39,7 @@ Node* read_input(char* fname, int *n, char* list) {
       exit(1);
     }    
   }
-  
+  #pragma omp parallel for
   for(int i = 0; i < *n; i++)
     fscanf(fl, "%d %f %[^\n]", &data[i].id, &data[i].value, data[i].neighbors);
   
@@ -52,10 +53,10 @@ Node* read_input(char* fname, int *n, char* list) {
 int find_by_id(Node g[], int id, int size){
 
   int i = 0;
-
+  #pragma omp task shared(i)
   while((i < size) && g[i].id != id)
     i++;
-
+  #pragma omp taskwait
   if(i < size)
     return i;
 
@@ -70,17 +71,21 @@ float get_costly(Node *g, int id, int size) {
   int idmax = -1;
   float max = 0;
   char *auxptr;
+  int nd;
+  #pragma omp single
+  nd = find_by_id(g, id, size);
   
-  int nd = find_by_id(g, id, size);
   if(nd < 0)
     return max;
 
   char aux[MAX];
   strcpy(aux, g[nd].neighbors);
   t = strtok_r(aux, " ", &auxptr);
-
+  int d;
   do {
-    int d = find_by_id(g, atoi(t), size);
+    #pragma omp task shared(d)
+    d = find_by_id(g, atoi(t), size);
+    #pragma omp taskwait
     if (d >= 0 && max < g[d].value) {
       max = g[d].value;
       idmax = atoi(t);
@@ -88,10 +93,11 @@ float get_costly(Node *g, int id, int size) {
   } while ((t = strtok_r(NULL, " ", &auxptr)));
 
   float r = g[nd].value;
-
-  if(idmax != -1)
-    r += get_costly(g, idmax, size);
   
+  if(idmax != -1)
+    #pragma omp task shared(r)
+    r += get_costly(g, idmax, size);
+  #pragma omp taskwait
   return (r);
 
 }
