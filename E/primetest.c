@@ -91,7 +91,6 @@ int main(int argc,char** argv)
 			primeToTest=atol(strToTest);
 			if (isprime(primeToTest)) 
 			   {
-           //#pragma omp critical
            result[numResults++]=primeToTest;
 			   }
 	      }
