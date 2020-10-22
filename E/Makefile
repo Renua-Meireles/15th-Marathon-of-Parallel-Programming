@@ -1,4 +1,4 @@
-FLAGS=-O3 -Wall
+FLAGS=-O3 -Wall -fopenmp
 OUT=primetest
 
 all: primetest
